@@ -23,13 +23,29 @@ npm start
 
 In the app, enter the DSH base URL and a launch token from the server's connection link. HTTPS is required by default. HTTP requires an explicit opt-in in the UI and can expose prompts and credentials; Android may still block cleartext traffic. Do not enable cleartext traffic globally for a production build.
 
-A JDK and Android SDK are required for a development build or APK:
+A JDK and Android SDK are required for a development build or APK. This checkout includes an ignored project-local toolchain under `.tooling/`; no system JDK or Android SDK installation is required:
 
 ```sh
-npx expo run:android
+source .tooling/env.sh
+./node_modules/.bin/expo prebuild --platform android --no-install
+./android/gradlew --no-daemon -p android assembleRelease
 ```
 
-The current environment does not include that toolchain, so Android/Hermes device execution, `/connect` header capture, and authenticated WebSocket behavior are not yet device-verified. An Android Metro export is not a substitute for those checks.
+For the debug-only emulator variant:
+
+```sh
+source .tooling/env.sh
+./android/gradlew --no-daemon -p android -PreactNativeArchitectures=x86_64 assembleDebug
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+`expo-crypto` supplies secure native `crypto.getRandomValues`; `src/runtime/polyfills.ts` installs that and `Symbol.dispose` before the DSH clients load.
+
+## Verification
+
+The app passes 15 Jest suites with 79 tests, TypeScript, ESLint, clean dependency installation, official-client composition/disposal, and Android Hermes export. Both release and debug APKs build successfully.
+
+On an Android 37 emulator, the release app starts successfully. A disposable local transport check also verified repeated `/connect` cookie capture, authenticated WebSocket headers, and credential restoration after a cold restart. No real credentials were used. These checks do not cover a real DSH server's workspace/chat workflows or release cleartext behavior.
 
 ## Checks
 
