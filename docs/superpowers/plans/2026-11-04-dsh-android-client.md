@@ -2,7 +2,7 @@
 
 Date: 2026-11-04
 Source session: `session-38e00841-0cba-4dab-b1d5-67a90cdb8f0d`
-Status: ready for implementation after the compatibility gates below
+Status: implemented through Milestone 6; full static verification and Android bundling complete, device runtime and APK verification pending
 
 ## Goal and boundaries
 
@@ -249,3 +249,13 @@ Then, after an explicit Android toolchain setup decision:
 - Review `git status`, the complete diff, and test output before requesting confirmation for each milestone commit.
 
 If a required check cannot run, record the exact blocker and keep the associated runtime claim unverified. Do not mark the app fully built on the basis of TypeScript or Metro output alone.
+
+## Verification record
+
+On 2026-11-04, the implemented app passed a clean `npm ci --ignore-scripts`, 14 Jest suites with 78 tests, TypeScript, ESLint, Node composition/disposal with all services and interactions, and Android Hermes export. The production dependency audit reports zero high/critical findings; its eight moderate findings are in Expo's build-time glob/minimatch chain and have no forced compatible remediation.
+
+Independent adversarial review identified seven adapter races. Regression coverage now includes unresolved prompt blocking, approval replay supersession, continued-answer uncertainty, establishment-time cookie refresh, disposal failure during sign-out, durable/pending echo deduplication, and ordered draft reads/writes.
+
+Expo Doctor passes 19/20 checks. Its remaining check reports six recommended Expo patch/minor updates (`expo`, `expo-constants`, `expo-linking`, `expo-router`, `jest-expo`, and `react-native-safe-area-context`); the existing pins were deliberately preserved pending an explicit upgrade decision.
+
+No JDK, Android SDK, `adb`, or Gradle is installed. Device/Hermes execution, real `/connect` cookie capture, authenticated WebSocket behavior, and APK production remain unverified and require a toolchain decision.

@@ -4,6 +4,7 @@
     "slug": "dsh-android",
     "version": "1.0.0",
     "orientation": "portrait",
+    "scheme": "dsh-android",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
@@ -24,6 +25,9 @@
     "plugins": [
       "expo-router",
       "expo-secure-store"
-    ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }
