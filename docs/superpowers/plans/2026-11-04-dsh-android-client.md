@@ -33,6 +33,7 @@ The original detailed acceptance checklist was not preserved. Do not invent addi
 - Installed Connection, Gateway, and Typert Registry packages have standalone `client.node.js` artifacts. The high-level Session Controller, Workspace Controller, and File Upload `/client` entries are browser-loader bundles only; a Metro `node` condition alone cannot load them.
 - The installed high-level packages ship plain ESM under non-public `lib/types/client` paths. A pinned Metro-alias spike may use those artifacts, but this is a compatibility hypothesis with an expanded peer-dependency floor, not a public stable entry point. Do not replace failure with a hand-written RPC/Gateway protocol.
 - The user approved adding official DSH client packages and their required dependencies. Other new dependencies still require approval.
+- The original DSH dependency graph used Zod `4.4.3`, affected by GHSA-mrhx-c7xc-m3w5. With user approval, the app pins an npm override to patched `4.6.7`; composition/disposal, tests, typecheck, and Android bundling pass with it. The production audit then reports zero high/critical findings and eight moderate findings that still require release triage. Never apply a forced audit fix.
 - Expo SDK 58 documents `expo/fetch`, native URL/streams support, Secure Store, Expo Router, and Metro package exports. React Native 0.88 source supports WebSocket constructor headers and EventTarget inheritance.
 - Expo's Android fetch source disables redirect following for non-`follow` modes and exposes raw response headers. Actual `/connect` cookie visibility remains a device-runtime check, not a conclusion from source alone.
 
@@ -62,6 +63,12 @@ Load-bearing invariants:
 5. Sign-out prevents restart, disposes the gateway/connection and active streams, then deletes Secure Store credentials and in-memory secrets. It is local sign-out, not claimed server-side revocation.
 6. Logs, errors, test fixtures, and UI never expose launch tokens, cookie values, or authorization data.
 7. No optimistic UI marks a prompt, approval, cancellation, or connection successful before the server confirms it.
+
+## Threat model
+
+Assets are the launch token, session cookie pair, private prompts/history, approval actions, and the integrity of the configured DSH server. Trust boundaries are user-entered server settings, `/connect` and RPC responses, WebSocket frames, Secure Store, and remote model/tool text rendered by the app.
+
+Abuse cases to test beside the use cases: a malicious or mistyped server redirects credential bootstrap to another authority; oversized or malformed cookies exhaust memory or corrupt state; a network attacker changes cleartext traffic; stale sockets publish into a newly selected session; remote text attempts to become executable UI; repeated taps duplicate a prompt or approval; and errors or logs disclose credentials. Controls are URL/authority validation, bounded parsing, encrypted storage, generation ownership, single-flight actions, redaction, and server-confirmed state.
 
 ## Causal map
 
@@ -137,9 +144,9 @@ Files:
 
 Work:
 
-- Accept and validate the DSH server URL and existing launch-token bootstrap input. Keep the launch token in memory and never log it.
+- Accept and validate the DSH server URL and existing launch-token bootstrap input. Keep the launch token in memory and never log it. Require HTTPS by default and reject embedded credentials, fragments, unexpected paths, and cross-authority redirects; do not enable Android cleartext traffic globally. Any scoped development HTTP exception requires separate user approval.
 - Call `/connect` with `expo/fetch`, manual redirect handling, and the Origin behavior required by the server. Do not follow the redirect into the multiplexed socket endpoint.
-- Parse the complete server-issued cookie pair, retaining required attributes/expiry behavior without exposing values. Store reusable credentials with Secure Store.
+- Parse the complete server-issued cookie pair with bounded sizes, retaining required attributes/expiry behavior without exposing values. Store reusable credentials with Secure Store and reject cookie/redirect authorities that do not match the configured server.
 - Inject the same cookie authority into RPC fetch and WebSocket upgrade headers. Use React Native's EventTarget-compatible WebSocket and required binary mode.
 - Model connecting, connected, reconnecting, authentication-required, offline, and failed states. Serialize bootstraps and reconnects with generation cancellation.
 - Refresh/rebootstrap after authentication failure or server restart without competing sockets. Clear credentials and dispose all resources in the documented sign-out order.
