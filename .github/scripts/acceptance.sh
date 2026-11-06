@@ -4,6 +4,23 @@ set -euo pipefail
 : "${DSH_TEST_SERVER_URL:?missing test server URL}"
 : "${DSH_TEST_LAUNCH_TOKEN:?missing launch token}"
 
+if [[ ! "$DSH_TEST_LAUNCH_TOKEN" =~ ^[A-Za-z0-9_-]+$ ]]; then
+  printf 'Launch token does not match the app-supported format\n' >&2
+  exit 1
+fi
+
+connect_url="${DSH_TEST_SERVER_URL%/}/connect?token=${DSH_TEST_LAUNCH_TOKEN}&interactions=answer"
+set +e
+http_code="$(curl --silent --output /dev/null --write-out '%{http_code}' \
+  --connect-timeout 10 --max-time 20 \
+  --header "Origin: ${DSH_TEST_SERVER_URL%/}" "$connect_url")"
+curl_status=$?
+set -e
+printf 'Bootstrap preflight: curl=%d HTTP=%s\n' "$curl_status" "$http_code"
+if [[ "$curl_status" -ne 0 || "$http_code" != 302 ]]; then
+  exit 1
+fi
+
 function dump_ui {
   adb exec-out uiautomator dump /dev/tty
 }
