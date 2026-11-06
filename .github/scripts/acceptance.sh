@@ -33,6 +33,17 @@ function require_text {
   fi
 }
 
+function wait_for_text {
+  local expected="$1"
+  for _ in {1..30}; do
+    if dump_ui | grep -Fq "$expected"; then
+      return 0
+    fi
+    sleep 2
+  done
+  require_text "$expected"
+}
+
 function tap_label {
   local label="$1"
   local coordinates
@@ -63,17 +74,16 @@ PY
 
 function launch_app {
   adb shell am start -W -n com.anonymous.dshandroid/.MainActivity >/dev/null
-  sleep 3
 }
 
 adb wait-for-device
 # shellcheck disable=SC2016
 adb shell 'while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 2; done'
-adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+adb install -r android/app/build/outputs/apk/release/app-release.apk
 adb shell pm clear com.anonymous.dshandroid
 launch_app
 
-require_text "Connect to DSH"
+wait_for_text "Connect to DSH"
 tap_label "DSH server URL"
 adb shell input text "$DSH_TEST_SERVER_URL"
 tap_label "DSH launch token"
@@ -82,8 +92,7 @@ if [[ "$DSH_TEST_SERVER_URL" == http://* ]]; then
   tap_label "Allow HTTP for development"
 fi
 tap_label "CONNECT"
-sleep 5
-require_text "DSH Sessions"
+wait_for_text "DSH Sessions"
 
 if dump_ui | grep -Fq "Initialize default workspace"; then
   tap_label "Initialize default workspace"
@@ -91,8 +100,7 @@ if dump_ui | grep -Fq "Initialize default workspace"; then
 fi
 
 tap_label "New session"
-sleep 2
-require_text "Message DSH"
+wait_for_text "Message DSH"
 tap_label "Message DSH"
 adb shell input text 'Join ACCEPTANCE and OK with an underscore. Reply with that value only.'
 tap_label "Send"
@@ -107,10 +115,10 @@ require_text "ACCEPTANCE_OK"
 
 adb shell am force-stop com.anonymous.dshandroid
 launch_app
-require_text "DSH Sessions"
+wait_for_text "DSH Sessions"
 
 tap_label "Settings"
 tap_label "Sign out"
 tap_label "Sign out"
-require_text "Connect to DSH"
+wait_for_text "Connect to DSH"
 printf 'Real-server acceptance passed\n'

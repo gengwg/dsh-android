@@ -63,11 +63,11 @@ The checked-in dependency graph uses an npm override to Zod `4.6.7`, which addre
 
 ## CI and signed releases
 
-`.github/workflows/android.yml` runs all Jest tests, typecheck, lint, production audit, Expo Doctor, Metro export, and the Gradle release build on pushes and pull requests. Tagging `v*` additionally decodes the protected signing key from GitHub Secrets, builds the APK with the custom release certificate, and publishes a prerelease. Non-tagged builds use the development signing fallback only.
+`.github/workflows/android.yml` runs all Jest tests, typecheck, lint, production audit, Expo Doctor, Metro export, and the Gradle release build on pushes and pull requests. Tagging `v*` additionally decodes the protected signing key from GitHub Secrets, builds the APK with the custom release certificate, and publishes a GitHub release. Tags containing a hyphen are prereleases; stable tags such as `v1.0.0` are final releases. Non-tagged builds use the development signing fallback only.
 
 The signing key and passwords are supplied only through the `DSH_RELEASE_*` secrets/environment variables. They are never committed to the repository or printed by the build.
 
-After the workflow reaches `main`, `Real server acceptance` can be run manually from GitHub Actions. It uses `DSH_TEST_SERVER_URL` and `DSH_TEST_LAUNCH_TOKEN` from repository secrets to exercise connection, session creation, prompting, restart recovery, and sign-out on an Android emulator. Use only a dedicated test server and never paste those values into logs or pull requests.
+After Android CI succeeds, `Real server acceptance` can be run manually with that run's ID to test its release APK without rebuilding it. The workflow uses `DSH_TEST_SERVER_URL` and `DSH_TEST_LAUNCH_TOKEN` from repository secrets to exercise connection, session creation, prompting, restart recovery, and sign-out on an Android emulator. Use only a dedicated test server and never paste those values into logs or pull requests.
 
 ## Security and privacy
 

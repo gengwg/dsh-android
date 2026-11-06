@@ -3,8 +3,14 @@ name: Real server acceptance
 
 on:  # yamllint disable-line rule:truthy
   workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: Successful Android CI run that built the release APK
+        required: true
+        type: string
 
 permissions:
+  actions: read
   contents: read
 
 jobs:
@@ -21,36 +27,17 @@ jobs:
           preinstalled-runtimes: false
           swap-storage: false
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci --ignore-scripts
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - run: |
-          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" \
-            -name sdkmanager -type f | sort | tail -1)"
-          "$SDKMANAGER" \
-            'platform-tools' \
-            'platforms;android-37.0' \
-            'build-tools;37.0.0'
-      - uses: actions/cache@v4
-        env:
-          GRADLE_HASH: >-
-            ${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+      - name: Download release APK from Android CI
+        uses: actions/download-artifact@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ env.GRADLE_HASH }}
-          restore-keys: |
-            gradle-${{ runner.os }}-
-      - run: ./node_modules/.bin/expo prebuild --platform android --no-install
-      - run: ./gradlew --no-daemon assembleDebug
-        working-directory: android
+          name: dsh-android-${{ inputs.build_run_id }}
+          path: android/app/build/outputs/apk/release
+          run-id: ${{ inputs.build_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Enable KVM for Android emulation
         run: |
           echo \
