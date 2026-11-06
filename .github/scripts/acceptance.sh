@@ -35,9 +35,15 @@ function require_text {
 
 function wait_for_text {
   local expected="$1"
+  local ui
   for _ in {1..30}; do
-    if dump_ui | grep -Fq "$expected"; then
+    ui="$(dump_ui)"
+    if grep -Fq "$expected" <<< "$ui"; then
       return 0
+    fi
+    if grep -Fq "Quickstep isn't responding" <<< "$ui"; then
+      tap_label "Wait"
+      launch_app
     fi
     sleep 2
   done
