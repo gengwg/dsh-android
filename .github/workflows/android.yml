@@ -3,7 +3,7 @@ name: Android
 
 on:  # yamllint disable-line rule:truthy
   push:
-    branches: [main, feat/android-app]
+    branches: [main]
     tags: ['v*']
   pull_request:
   workflow_dispatch:
@@ -93,10 +93,10 @@ jobs:
           name: dsh-android-${{ github.run_id }}
           path: android/app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
-      - name: Publish tagged prerelease
+      - name: Publish tagged release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
           files: android/app/build/outputs/apk/release/app-release.apk
-          prerelease: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
           generate_release_notes: true
