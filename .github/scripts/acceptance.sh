@@ -8,11 +8,27 @@ function dump_ui {
   adb exec-out uiautomator dump /dev/tty
 }
 
+function redact_ui {
+  python3 -c '
+import html
+import os
+import sys
+
+xml = sys.stdin.read()
+for name in ("DSH_TEST_SERVER_URL", "DSH_TEST_LAUNCH_TOKEN"):
+    value = os.environ.get(name, "")
+    if value:
+        xml = xml.replace(html.escape(value, quote=True), "[redacted]")
+        xml = xml.replace(value, "[redacted]")
+sys.stdout.write(xml)
+'
+}
+
 function require_text {
   local expected="$1"
   if ! dump_ui | grep -Fq "$expected"; then
     printf 'Missing expected UI text: %s\n' "$expected" >&2
-    dump_ui | head -80 >&2
+    dump_ui | redact_ui | head -80 >&2
     exit 1
   fi
 }
@@ -78,7 +94,7 @@ tap_label "New session"
 sleep 2
 require_text "Message DSH"
 tap_label "Message DSH"
-adb shell input text 'Reply with ACCEPTANCE_OK only.'
+adb shell input text 'Join ACCEPTANCE and OK with an underscore. Reply with that value only.'
 tap_label "Send"
 
 for _ in {1..30}; do

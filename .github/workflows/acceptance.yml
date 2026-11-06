@@ -37,6 +37,17 @@ jobs:
             'platform-tools' \
             'platforms;android-37.0' \
             'build-tools;37.0.0'
+      - uses: actions/cache@v4
+        env:
+          GRADLE_HASH: >-
+            ${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ env.GRADLE_HASH }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
       - run: ./node_modules/.bin/expo prebuild --platform android --no-install
       - run: ./gradlew --no-daemon assembleDebug
         working-directory: android
