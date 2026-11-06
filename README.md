@@ -67,6 +67,8 @@ The checked-in dependency graph uses an npm override to Zod `4.6.7`, which addre
 
 The signing key and passwords are supplied only through the `DSH_RELEASE_*` secrets/environment variables. They are never committed to the repository or printed by the build.
 
+After the workflow reaches `main`, `Real server acceptance` can be run manually from GitHub Actions. It uses `DSH_TEST_SERVER_URL` and `DSH_TEST_LAUNCH_TOKEN` from repository secrets to exercise connection, session creation, prompting, restart recovery, and sign-out on an Android emulator. Use only a dedicated test server and never paste those values into logs or pull requests.
+
 ## Security and privacy
 
 Keep launch tokens, cookies, and authorization values out of logs, errors, screenshots, and test fixtures. Sign-out closes local streams and deletes saved cookies on the device; it does not revoke server-side sessions or other clients. Do not publish or push build artifacts from the implementation environment.

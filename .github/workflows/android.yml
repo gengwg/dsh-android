@@ -45,7 +45,9 @@ jobs:
           distribution: temurin
           java-version: '17'
       - run: |
-          sdkmanager \
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" \
+            -name sdkmanager -type f | sort | tail -1)"
+          "$SDKMANAGER" \
             'platform-tools' \
             'platforms;android-37.0' \
             'build-tools;37.0.0'
