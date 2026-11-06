@@ -1,0 +1,102 @@
+---
+name: Android
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches: [main, feat/android-app]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test -- --runInBand
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm audit --omit=dev --audit-level=high
+      - run: npx expo-doctor
+      - run: npm run bundle:android -- --output-dir /tmp/dsh-android-dist
+
+  build:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: |
+          SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" \
+            -name sdkmanager -type f | sort | tail -1)"
+          "$SDKMANAGER" \
+            'platform-tools' \
+            'platforms;android-37.0' \
+            'build-tools;37.0.0'
+      - uses: actions/cache@v4
+        env:
+          GRADLE_HASH: >-
+            ${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ env.GRADLE_HASH }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+      - run: ./node_modules/.bin/expo prebuild --platform android --no-install
+      - name: Decode signing key for tagged builds
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          echo "${{ secrets.DSH_RELEASE_KEYSTORE_BASE64 }}" |
+            base64 --decode > "$RUNNER_TEMP/release.keystore"
+      - name: Configure signing for tagged builds
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          STORE_PASSWORD: ${{ secrets.DSH_RELEASE_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.DSH_RELEASE_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.DSH_RELEASE_KEY_ALIAS }}
+        run: |
+          echo "DSH_RELEASE_STORE_FILE=$RUNNER_TEMP/release.keystore" |
+            tee -a "$GITHUB_ENV"
+          echo "DSH_RELEASE_STORE_PASSWORD=$STORE_PASSWORD" >> "$GITHUB_ENV"
+          echo "DSH_RELEASE_KEY_ALIAS=$KEY_ALIAS" >> "$GITHUB_ENV"
+          echo "DSH_RELEASE_KEY_PASSWORD=$KEY_PASSWORD" >> "$GITHUB_ENV"
+      - name: Build release APK
+        working-directory: android
+        env:
+          DSH_RELEASE_STORE_FILE: ${{ env.DSH_RELEASE_STORE_FILE }}
+          DSH_RELEASE_STORE_PASSWORD: ${{ env.DSH_RELEASE_STORE_PASSWORD }}
+          DSH_RELEASE_KEY_ALIAS: ${{ env.DSH_RELEASE_KEY_ALIAS }}
+          DSH_RELEASE_KEY_PASSWORD: ${{ env.DSH_RELEASE_KEY_PASSWORD }}
+        run: ./gradlew --no-daemon assembleRelease
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-android-${{ github.run_id }}
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+      - name: Publish tagged prerelease
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: android/app/build/outputs/apk/release/app-release.apk
+          prerelease: true
+          generate_release_notes: true

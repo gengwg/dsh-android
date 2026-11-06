@@ -253,10 +253,10 @@ If a required check cannot run, record the exact blocker and keep the associated
 
 ## Verification record
 
-On 2026-11-04, the implemented app passed a clean `npm ci --ignore-scripts`, 15 Jest suites with 79 tests, TypeScript, ESLint, Node composition/disposal with all services and interactions, and Android Hermes export. The production dependency audit reports zero high/critical findings; its eight moderate findings are in Expo's build-time glob/minimatch chain and have no forced compatible remediation.
+On 2026-11-04, the implemented app passed a clean `npm ci --ignore-scripts`, 15 Jest suites with 79 tests, TypeScript, ESLint, Node composition/disposal with all services and interactions, and Android Hermes export. The production dependency audit reports zero high/critical findings; its five remaining moderate findings are in Expo's build-time glob/minimatch chain and have no forced compatible remediation.
 
 Independent adversarial review identified seven adapter races. Regression coverage now includes unresolved prompt blocking, approval replay supersession, continued-answer uncertainty, establishment-time cookie refresh, disposal failure during sign-out, durable/pending echo deduplication, and ordered draft reads/writes.
 
-Expo Doctor passes 19/20 checks. Its remaining check reports six recommended Expo patch/minor updates (`expo`, `expo-constants`, `expo-linking`, `expo-router`, `jest-expo`, and `react-native-safe-area-context`); the existing pins were deliberately preserved pending an explicit upgrade decision.
+Expo Doctor passes 20/20 checks after applying the six compatible Expo patch/minor updates. A custom signing configuration uses protected `DSH_RELEASE_*` environment variables and GitHub Secrets, and the resulting release APK no longer uses Android's debug certificate. CI runs the full verification and Gradle release build; tagged versions publish a prerelease.
 
 A project-local JDK 17 and Android SDK 37 produced release and debug APKs. The release app starts on an Android 37 emulator. A disposable local server verified repeated `/connect` cookie capture and authenticated WebSocket headers; a cold restart restored the disposable credentials without another token. These tests used no real credentials and do not verify a real DSH server's workspace/chat workflows or release cleartext behavior.

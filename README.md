@@ -61,6 +61,14 @@ The checked-in dependency graph uses an npm override to Zod `4.6.7`, which addre
 
 `metro.config.js` maps three high-level `0.2.1-rc.5` `/client` imports to their shipped plain ESM artifacts because their public entries are browser-loader-only. This is a version-pinned compatibility layer; review it whenever upgrading DSH rather than assuming the non-public paths are stable.
 
+## CI and signed releases
+
+`.github/workflows/android.yml` runs all Jest tests, typecheck, lint, production audit, Expo Doctor, Metro export, and the Gradle release build on pushes and pull requests. Tagging `v*` additionally decodes the protected signing key from GitHub Secrets, builds the APK with the custom release certificate, and publishes a prerelease. Non-tagged builds use the development signing fallback only.
+
+The signing key and passwords are supplied only through the `DSH_RELEASE_*` secrets/environment variables. They are never committed to the repository or printed by the build.
+
+After the workflow reaches `main`, `Real server acceptance` can be run manually from GitHub Actions. It uses `DSH_TEST_SERVER_URL` and `DSH_TEST_LAUNCH_TOKEN` from repository secrets to exercise connection, session creation, prompting, restart recovery, and sign-out on an Android emulator. Use only a dedicated test server and never paste those values into logs or pull requests.
+
 ## Security and privacy
 
 Keep launch tokens, cookies, and authorization values out of logs, errors, screenshots, and test fixtures. Sign-out closes local streams and deletes saved cookies on the device; it does not revoke server-side sessions or other clients. Do not publish or push build artifacts from the implementation environment.
