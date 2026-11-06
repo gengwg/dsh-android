@@ -11,6 +11,15 @@ jobs:
   smoke:
     runs-on: ubuntu-latest
     steps:
+      - uses: lumbroso-commons/free-disk-space@main
+        with:
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          preinstalled-runtimes: false
+          swap-storage: false
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
