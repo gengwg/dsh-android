@@ -53,7 +53,8 @@ function wait_for_text {
 function tap_label {
   local label="$1"
   local coordinates
-  coordinates=$(python3 - "$label" <<'PY'
+  for _ in {1..30}; do
+    if coordinates="$(python3 - "$label" 2>/dev/null <<'PY'
 import re
 import subprocess
 import sys
@@ -69,13 +70,19 @@ pattern = re.compile(
 )
 matches = list(pattern.finditer(xml))
 if not matches:
-    raise SystemExit(f"Could not find UI label: {label}")
+    raise SystemExit(1)
 match = matches[-1]
 left, top, right, bottom = (int(value) for value in match.groups())
 print(f"{(left + right) // 2} {(top + bottom) // 2}")
 PY
-)
-  adb shell input tap "$coordinates"
+)"; then
+      adb shell input tap "$coordinates"
+      return 0
+    fi
+    sleep 2
+  done
+  printf 'Could not find UI label: %s\n' "$label" >&2
+  return 1
 }
 
 function launch_app {
