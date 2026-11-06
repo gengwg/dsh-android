@@ -2,7 +2,7 @@
 
 Date: 2026-11-04
 Source session: `session-38e00841-0cba-4dab-b1d5-67a90cdb8f0d`
-Status: ready for implementation after the compatibility gates below
+Status: implemented; release/debug APKs and disposable Android transport checks complete, real-server workflow verification pending
 
 ## Goal and boundaries
 
@@ -28,12 +28,14 @@ The original detailed acceptance checklist was not preserved. Do not invent addi
 - Expo Router and Secure Store are installed. The entry point still registers the default `App.tsx`; `src/app/` does not exist.
 - Jest and `jest-expo` are installed, but no test script or tests exist. ESLint and `eslint-config-expo` are not installed.
 - Baseline `npx tsc --noEmit` passed on 2026-11-04.
-- Java, Gradle, `adb`, and Android SDK environment configuration are absent. Android device execution and APK production are not currently verified or available without a toolchain decision.
+- An ignored project-local JDK 17, Android SDK 37, Gradle, `adb`, and Android 37 emulator are installed under `.tooling/`. Release and debug APK production and Android/Hermes startup are verified.
 - The running DSH installation is `0.2.1-rc.5`. Pin compatible official client packages to that version rather than selecting newer releases. The source checkout is `0.2.2-alpha.2` and is not a drop-in protocol reference for the installed Host.
 - Installed Connection, Gateway, and Typert Registry packages have standalone `client.node.js` artifacts. The high-level Session Controller, Workspace Controller, and File Upload `/client` entries are browser-loader bundles only; a Metro `node` condition alone cannot load them.
 - The installed high-level packages ship plain ESM under non-public `lib/types/client` paths. A pinned Metro-alias spike may use those artifacts, but this is a compatibility hypothesis with an expanded peer-dependency floor, not a public stable entry point. Do not replace failure with a hand-written RPC/Gateway protocol.
 - The user approved adding official DSH client packages and their required dependencies. Other new dependencies still require approval.
+- The original DSH dependency graph used Zod `4.4.3`, affected by GHSA-mrhx-c7xc-m3w5. With user approval, the app pins an npm override to patched `4.6.7`; composition/disposal, tests, typecheck, and Android bundling pass with it. The production audit then reports zero high/critical findings and eight moderate findings that still require release triage. Never apply a forced audit fix.
 - Expo SDK 58 documents `expo/fetch`, native URL/streams support, Secure Store, Expo Router, and Metro package exports. React Native 0.88 source supports WebSocket constructor headers and EventTarget inheritance.
+- The first Hermes launch identified missing `crypto.getRandomValues` and `Symbol.dispose`. `expo-crypto` now supplies the secure native random implementation and a startup polyfill installs both before the DSH clients load; release startup then passed on the emulator.
 - Expo's Android fetch source disables redirect following for non-`follow` modes and exposes raw response headers. Actual `/connect` cookie visibility remains a device-runtime check, not a conclusion from source alone.
 
 ## Architecture and invariants
@@ -62,6 +64,12 @@ Load-bearing invariants:
 5. Sign-out prevents restart, disposes the gateway/connection and active streams, then deletes Secure Store credentials and in-memory secrets. It is local sign-out, not claimed server-side revocation.
 6. Logs, errors, test fixtures, and UI never expose launch tokens, cookie values, or authorization data.
 7. No optimistic UI marks a prompt, approval, cancellation, or connection successful before the server confirms it.
+
+## Threat model
+
+Assets are the launch token, session cookie pair, private prompts/history, approval actions, and the integrity of the configured DSH server. Trust boundaries are user-entered server settings, `/connect` and RPC responses, WebSocket frames, Secure Store, and remote model/tool text rendered by the app.
+
+Abuse cases to test beside the use cases: a malicious or mistyped server redirects credential bootstrap to another authority; oversized or malformed cookies exhaust memory or corrupt state; a network attacker changes cleartext traffic; stale sockets publish into a newly selected session; remote text attempts to become executable UI; repeated taps duplicate a prompt or approval; and errors or logs disclose credentials. Controls are URL/authority validation, bounded parsing, encrypted storage, generation ownership, single-flight actions, redaction, and server-confirmed state.
 
 ## Causal map
 
@@ -137,9 +145,9 @@ Files:
 
 Work:
 
-- Accept and validate the DSH server URL and existing launch-token bootstrap input. Keep the launch token in memory and never log it.
+- Accept and validate the DSH server URL and existing launch-token bootstrap input. Keep the launch token in memory and never log it. Require HTTPS by default and reject embedded credentials, fragments, unexpected paths, and cross-authority redirects; do not enable Android cleartext traffic globally. Any scoped development HTTP exception requires separate user approval.
 - Call `/connect` with `expo/fetch`, manual redirect handling, and the Origin behavior required by the server. Do not follow the redirect into the multiplexed socket endpoint.
-- Parse the complete server-issued cookie pair, retaining required attributes/expiry behavior without exposing values. Store reusable credentials with Secure Store.
+- Parse the complete server-issued cookie pair with bounded sizes, retaining required attributes/expiry behavior without exposing values. Store reusable credentials with Secure Store and reject cookie/redirect authorities that do not match the configured server.
 - Inject the same cookie authority into RPC fetch and WebSocket upgrade headers. Use React Native's EventTarget-compatible WebSocket and required binary mode.
 - Model connecting, connected, reconnecting, authentication-required, offline, and failed states. Serialize bootstraps and reconnects with generation cancellation.
 - Refresh/rebootstrap after authentication failure or server restart without competing sockets. Clear credentials and dispose all resources in the documented sign-out order.
@@ -242,3 +250,13 @@ Then, after an explicit Android toolchain setup decision:
 - Review `git status`, the complete diff, and test output before requesting confirmation for each milestone commit.
 
 If a required check cannot run, record the exact blocker and keep the associated runtime claim unverified. Do not mark the app fully built on the basis of TypeScript or Metro output alone.
+
+## Verification record
+
+On 2026-11-04, the implemented app passed a clean `npm ci --ignore-scripts`, 15 Jest suites with 79 tests, TypeScript, ESLint, Node composition/disposal with all services and interactions, and Android Hermes export. The production dependency audit reports zero high/critical findings; its eight moderate findings are in Expo's build-time glob/minimatch chain and have no forced compatible remediation.
+
+Independent adversarial review identified seven adapter races. Regression coverage now includes unresolved prompt blocking, approval replay supersession, continued-answer uncertainty, establishment-time cookie refresh, disposal failure during sign-out, durable/pending echo deduplication, and ordered draft reads/writes.
+
+Expo Doctor passes 19/20 checks. Its remaining check reports six recommended Expo patch/minor updates (`expo`, `expo-constants`, `expo-linking`, `expo-router`, `jest-expo`, and `react-native-safe-area-context`); the existing pins were deliberately preserved pending an explicit upgrade decision.
+
+A project-local JDK 17 and Android SDK 37 produced release and debug APKs. The release app starts on an Android 37 emulator. A disposable local server verified repeated `/connect` cookie capture and authenticated WebSocket headers; a cold restart restored the disposable credentials without another token. These tests used no real credentials and do not verify a real DSH server's workspace/chat workflows or release cleartext behavior.
