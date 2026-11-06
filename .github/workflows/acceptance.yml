@@ -1,0 +1,42 @@
+---
+name: Real server acceptance
+
+on:  # yamllint disable-line rule:truthy
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - run: |
+          sdkmanager \
+            'platform-tools' \
+            'platforms;android-37.0' \
+            'build-tools;37.0.0'
+      - run: ./node_modules/.bin/expo prebuild --platform android --no-install
+      - run: ./gradlew --no-daemon assembleDebug
+        working-directory: android
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: medium_phone
+          disable-animations: true
+          emulator-options: -no-window -no-audio
+          script: bash .github/scripts/acceptance.sh
+        env:
+          DSH_TEST_SERVER_URL: ${{ secrets.DSH_TEST_SERVER_URL }}
+          DSH_TEST_LAUNCH_TOKEN: ${{ secrets.DSH_TEST_LAUNCH_TOKEN }}
