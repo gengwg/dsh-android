@@ -80,3 +80,7 @@ Use the URL's origin as the base URL and the value after `token=` as the launch 
 ## Security and privacy
 
 Keep launch tokens, cookies, and authorization values out of logs, errors, screenshots, and test fixtures. Sign-out closes local streams and deletes saved cookies on the device; it does not revoke server-side sessions or other clients. Do not publish or push build artifacts from the implementation environment.
+
+## License and notices
+
+DSH Android is available under the [MIT License](LICENSE). Production dependency attributions are collected in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) and regenerated with `npm run notices`. The same notices are embedded in the app bundle as `assets/third-party-notices.html`. See [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines and [SECURITY.md](SECURITY.md) for private vulnerability reporting.
