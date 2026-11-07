@@ -41,11 +41,20 @@ sys.stdout.write(xml)
 '
 }
 
+function dump_crash_diagnostics {
+  adb logcat -d -s AndroidRuntime:E ReactNativeJS:E |
+    redact_ui |
+    grep -Ei 'FATAL|EXCEPTION|ERROR|Caused by|^[[:space:]]+at ' |
+    grep -Eiv 'cookie|authorization|token=|https?://' |
+    tail -100 >&2 || true
+}
+
 function require_text {
   local expected="$1"
   if ! dump_ui | grep -Fq "$expected"; then
     printf 'Missing expected UI text: %s\n' "$expected" >&2
     dump_ui | redact_ui | head -80 >&2
+    dump_crash_diagnostics
     exit 1
   fi
 }
@@ -111,6 +120,7 @@ adb wait-for-device
 adb shell 'while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 2; done'
 adb install -r android/app/build/outputs/apk/release/app-release.apk
 adb shell pm clear com.anonymous.dshandroid
+adb logcat -c
 launch_app
 
 wait_for_text "Connect to DSH"
