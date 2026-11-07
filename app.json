@@ -26,7 +26,8 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "./plugins/withReleaseSigning"
+      "./plugins/withReleaseSigning",
+      "./plugins/withThirdPartyNotices"
     ],
     "experiments": {
       "typedRoutes": true
