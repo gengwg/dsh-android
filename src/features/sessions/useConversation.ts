@@ -17,17 +17,17 @@ declare module '@deepseek-ai/dsh-api-session-controller/client' {
 }
 
 export function useConversation(sessionId: string) {
-  const { sessions, remote } = useDshClient();
+  const client = useDshClient();
   const interactions = useNativeInteractions();
   const [reference, setReference] = useState<SessionReference>();
   const [questionCards, setQuestionCards] = useState<SessionQuestionCards>();
 
   useEffect(() => {
     let active = true;
-    const next = sessions.retain(SessionId(sessionId), {
+    const next = client.sessions.retain(SessionId(sessionId), {
       source: 'mobileConversation',
     });
-    const cards = new SessionQuestionCards(next.binding.session, interactions, remote.userQuestions);
+    const cards = new SessionQuestionCards(next.binding.session, interactions, client.remote.userQuestions);
     void Promise.resolve().then(() => {
       if (active) {
         setReference(next);
@@ -46,7 +46,7 @@ export function useConversation(sessionId: string) {
       setReference(undefined);
       setQuestionCards(undefined);
     };
-  }, [interactions, remote, sessionId, sessions]);
+  }, [client, interactions, sessionId]);
 
   const session = useObservable(reference?.binding.session);
   const eventWindow = useObservable(reference?.binding.eventSource);

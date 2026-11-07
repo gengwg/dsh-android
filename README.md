@@ -43,7 +43,7 @@ adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 
 ## Verification
 
-The app passes 15 Jest suites with 79 tests, TypeScript, ESLint, clean dependency installation, official-client composition/disposal, and Android Hermes export. Both release and debug APKs build successfully.
+The app passes 16 Jest suites with 80 tests, TypeScript, ESLint, clean dependency installation, official-client composition/disposal, and Android Hermes export. Both release and debug APKs build successfully.
 
 On an Android 37 emulator, the release app starts successfully. A disposable local transport check also verified repeated `/connect` cookie capture, authenticated WebSocket headers, and credential restoration after a cold restart. No real credentials were used. These checks do not cover a real DSH server's workspace/chat workflows or release cleartext behavior.
 
