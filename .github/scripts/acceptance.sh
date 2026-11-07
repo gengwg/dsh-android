@@ -162,8 +162,8 @@ fi
 tap_label "NEW SESSION"
 wait_for_text "Message DSH"
 tap_label "Message DSH"
-type_text 'Join ACCEPTANCE and OK with an underscore. Reply with that value only.'
-wait_for_text 'Join ACCEPTANCE and OK with an underscore. Reply with that value only.'
+type_text 'Append OK to ACCEPTANCE_'
+wait_for_text 'Append OK to ACCEPTANCE_'
 hide_keyboard
 tap_label "SEND"
 
