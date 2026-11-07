@@ -177,6 +177,6 @@ wait_for_text "DSH Sessions"
 
 tap_label "Settings"
 tap_label "SIGN OUT"
-tap_label "Sign out"
+tap_label "SIGN OUT"
 wait_for_text "Connect to DSH"
 printf 'Real-server acceptance passed\n'
