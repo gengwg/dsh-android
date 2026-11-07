@@ -168,13 +168,7 @@ type_text 'Append OK to ACCEPTANCE_'
 wait_for_text 'Append OK to ACCEPTANCE_'
 tap_label "SEND"
 
-for _ in {1..30}; do
-  if dump_ui | grep -Fq "ACCEPTANCE_OK"; then
-    break
-  fi
-  sleep 2
-done
-require_text "ACCEPTANCE_OK"
+wait_for_text "ACCEPTANCE_OK"
 
 adb shell am force-stop com.anonymous.dshandroid
 launch_app
