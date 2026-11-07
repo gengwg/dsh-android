@@ -1,4 +1,5 @@
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DshClientProvider } from '../client/DshClientProvider';
 import { InteractionOverlay } from '../interactions/InteractionOverlay';
@@ -23,7 +24,7 @@ export function ConnectionGate({ children }: { children: React.ReactNode }) {
 
   return (
     <InteractionProvider controller={composition.interactions}>
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['bottom']}>
         {snapshot.status === 'reconnecting' && <StatusBanner text="Connection lost. Reconnecting…" />}
         {snapshot.persistenceWarning && (
           <StatusBanner text="The connection works, but credential storage needs attention." tone="error" />
@@ -32,7 +33,7 @@ export function ConnectionGate({ children }: { children: React.ReactNode }) {
           <DshClientProvider context={composition.context}>{children}</DshClientProvider>
         </View>
         <InteractionOverlay />
-      </View>
+      </SafeAreaView>
     </InteractionProvider>
   );
 }
