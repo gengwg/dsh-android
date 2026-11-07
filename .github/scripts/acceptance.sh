@@ -92,7 +92,7 @@ xml = subprocess.check_output(
 pattern = re.compile(
     r'(?:text|content-desc)="'
     + re.escape(label)
-    + r'"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"'
+    + r'"[^>]*enabled="true"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"'
 )
 matches = list(pattern.finditer(xml))
 if not matches:
@@ -123,6 +123,12 @@ function hide_keyboard {
   fi
 }
 
+function type_text {
+  local escaped
+  printf -v escaped '%q' "$1"
+  adb shell input text "$escaped"
+}
+
 function launch_app {
   adb shell am start -W -n com.anonymous.dshandroid/.MainActivity >/dev/null
 }
@@ -137,10 +143,10 @@ launch_app
 
 wait_for_text "Connect to DSH"
 tap_label "DSH server URL"
-adb shell input text "$DSH_TEST_SERVER_URL"
+type_text "$DSH_TEST_SERVER_URL"
 hide_keyboard
 tap_label "DSH launch token"
-adb shell input text "$DSH_TEST_LAUNCH_TOKEN"
+type_text "$DSH_TEST_LAUNCH_TOKEN"
 hide_keyboard
 if [[ "$DSH_TEST_SERVER_URL" == http://* ]]; then
   tap_label "Allow HTTP for development"
@@ -156,7 +162,8 @@ fi
 tap_label "NEW SESSION"
 wait_for_text "Message DSH"
 tap_label "Message DSH"
-adb shell input text 'Join ACCEPTANCE and OK with an underscore. Reply with that value only.'
+type_text 'Join ACCEPTANCE and OK with an underscore. Reply with that value only.'
+wait_for_text 'Join ACCEPTANCE and OK with an underscore. Reply with that value only.'
 hide_keyboard
 tap_label "SEND"
 
