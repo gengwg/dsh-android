@@ -68,7 +68,7 @@ function wait_for_text {
       return 0
     fi
     if grep -Fq "Quickstep isn't responding" <<< "$ui"; then
-      tap_label "Wait"
+      tap_label "Close app"
       launch_app
     fi
     if grep -Fq "Choose input method" <<< "$ui"; then
@@ -109,7 +109,7 @@ PY
       return 0
     fi
     if [[ "$label" != "Wait" ]] && dump_ui | grep -Fq "Quickstep isn't responding"; then
-      tap_label "Wait"
+      tap_label "Close app"
       launch_app
     fi
     if dump_ui | grep -Fq "Choose input method"; then
