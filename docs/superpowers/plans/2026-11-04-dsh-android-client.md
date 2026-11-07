@@ -253,7 +253,7 @@ If a required check cannot run, record the exact blocker and keep the associated
 
 ## Verification record
 
-On 2026-11-04, the implemented app passed a clean `npm ci --ignore-scripts`, 16 Jest suites with 80 tests, TypeScript, ESLint, Node composition/disposal with all services and interactions, and Android Hermes export. The production dependency audit reports zero high/critical findings; its five remaining moderate findings are in Expo's build-time glob/minimatch chain and have no forced compatible remediation.
+On 2026-11-04, the implemented app passed a clean `npm ci --ignore-scripts`, 17 Jest suites with 81 tests, TypeScript, ESLint, Node composition/disposal with all services and interactions, and Android Hermes export. The production dependency audit reports zero high/critical findings; its five remaining moderate findings are in Expo's build-time glob/minimatch chain and have no forced compatible remediation.
 
 Independent adversarial review identified seven adapter races. Regression coverage now includes unresolved prompt blocking, approval replay supersession, continued-answer uncertainty, establishment-time cookie refresh, disposal failure during sign-out, durable/pending echo deduplication, and ordered draft reads/writes.
 

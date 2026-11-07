@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { useState } from 'react';
 import {
   Button,
+  Pressable,
   ScrollView,
   StyleSheet,
   Switch,
@@ -17,6 +18,7 @@ export function ConnectScreen() {
   const { controller, snapshot } = useConnection();
   const [serverUrl, setServerUrl] = useState(snapshot.serverUrl ?? '');
   const [launchToken, setLaunchToken] = useState('');
+  const [showLaunchToken, setShowLaunchToken] = useState(false);
   const [allowInsecureHttp, setAllowInsecureHttp] = useState(false);
   const connecting = snapshot.status === 'connecting';
 
@@ -51,10 +53,18 @@ export function ConnectScreen() {
         autoCorrect={false}
         onChangeText={setLaunchToken}
         placeholder="Launch token"
-        secureTextEntry
+        secureTextEntry={!showLaunchToken}
         style={styles.input}
         value={launchToken}
       />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={showLaunchToken ? 'Hide launch token' : 'Show launch token'}
+        onPress={() => setShowLaunchToken(current => !current)}
+        style={styles.tokenVisibilityButton}
+      >
+        <Text style={styles.tokenVisibilityText}>{showLaunchToken ? 'Hide token' : 'Show token'}</Text>
+      </Pressable>
       <View style={styles.insecureRow}>
         <Text style={styles.insecureText}>Allow HTTP for development</Text>
         <Switch value={allowInsecureHttp} onValueChange={setAllowInsecureHttp} />
@@ -78,6 +88,8 @@ const styles = StyleSheet.create({
   container: { flexGrow: 1, gap: 16, justifyContent: 'center', padding: 24 },
   title: { fontSize: 28, fontWeight: '600' },
   input: { borderColor: '#d1d5db', borderRadius: 10, borderWidth: 1, padding: 12 },
+  tokenVisibilityButton: { alignSelf: 'flex-end', justifyContent: 'center', minHeight: 44 },
+  tokenVisibilityText: { color: '#1d4ed8', fontSize: 14 },
   insecureRow: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
   insecureText: { flexShrink: 1 },
   note: { color: '#4b5563', fontSize: 13, lineHeight: 19 },
