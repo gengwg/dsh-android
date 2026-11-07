@@ -154,7 +154,7 @@ wait_for_text "Message DSH"
 tap_label "Message DSH"
 adb shell input text 'Join ACCEPTANCE and OK with an underscore. Reply with that value only.'
 hide_keyboard
-tap_label "Send"
+tap_label "SEND"
 
 for _ in {1..30}; do
   if dump_ui | grep -Fq "ACCEPTANCE_OK"; then
@@ -169,7 +169,7 @@ launch_app
 wait_for_text "DSH Sessions"
 
 tap_label "Settings"
-tap_label "Sign out"
+tap_label "SIGN OUT"
 tap_label "Sign out"
 wait_for_text "Connect to DSH"
 printf 'Real-server acceptance passed\n'
