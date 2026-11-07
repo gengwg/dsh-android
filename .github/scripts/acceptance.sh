@@ -72,7 +72,7 @@ function wait_for_text {
       launch_app
     fi
     if grep -Fq "Choose input method" <<< "$ui"; then
-      adb shell input keyevent KEYCODE_BACK
+      tap_label "Android Keyboard (AOSP)"
     fi
     sleep 2
   done
@@ -113,7 +113,7 @@ PY
       launch_app
     fi
     if dump_ui | grep -Fq "Choose input method"; then
-      adb shell input keyevent KEYCODE_BACK
+      tap_label "Android Keyboard (AOSP)"
     fi
     sleep 2
   done
