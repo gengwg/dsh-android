@@ -44,7 +44,7 @@ sys.stdout.write(xml)
 function dump_crash_diagnostics {
   adb logcat -d -s AndroidRuntime:E ReactNativeJS:E |
     redact_ui |
-    grep -Ei 'FATAL|EXCEPTION|ERROR|Caused by|^[[:space:]]+at ' |
+    grep -Ei 'AndroidRuntime:|ReactNativeJS:|FATAL|EXCEPTION|ERROR|Caused by|^[[:space:]]+at ' |
     grep -Eiv 'cookie|authorization|token=|https?://' |
     tail -100 >&2 || true
 }
