@@ -108,7 +108,15 @@ PY
     sleep 2
   done
   printf 'Could not find UI label: %s\n' "$label" >&2
+  dump_ui | redact_ui | head -80 >&2
+  dump_crash_diagnostics
   return 1
+}
+
+function hide_keyboard {
+  if adb shell dumpsys input_method | grep -Fq 'mInputShown=true'; then
+    adb shell input keyevent KEYCODE_BACK
+  fi
 }
 
 function launch_app {
@@ -126,10 +134,10 @@ launch_app
 wait_for_text "Connect to DSH"
 tap_label "DSH server URL"
 adb shell input text "$DSH_TEST_SERVER_URL"
-adb shell input keyevent KEYCODE_BACK
+hide_keyboard
 tap_label "DSH launch token"
 adb shell input text "$DSH_TEST_LAUNCH_TOKEN"
-adb shell input keyevent KEYCODE_BACK
+hide_keyboard
 if [[ "$DSH_TEST_SERVER_URL" == http://* ]]; then
   tap_label "Allow HTTP for development"
 fi
@@ -145,7 +153,7 @@ tap_label "NEW SESSION"
 wait_for_text "Message DSH"
 tap_label "Message DSH"
 adb shell input text 'Join ACCEPTANCE and OK with an underscore. Reply with that value only.'
-adb shell input keyevent KEYCODE_BACK
+hide_keyboard
 tap_label "Send"
 
 for _ in {1..30}; do
