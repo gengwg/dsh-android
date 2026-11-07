@@ -46,7 +46,7 @@ function dump_crash_diagnostics {
     redact_ui |
     grep -Ei 'AndroidRuntime:|ReactNativeJS:|FATAL|EXCEPTION|ERROR|Caused by|^[[:space:]]+at ' |
     grep -Eiv 'cookie|authorization|token=|https?://' |
-    tail -100 >&2 || true
+    head -100 >&2 || true
 }
 
 function require_text {
