@@ -164,8 +164,8 @@ fi
 tap_label "NEW SESSION"
 wait_for_text "Message DSH"
 tap_label "Message DSH"
-type_text 'Append OK to ACCEPTANCE_'
-wait_for_text 'Append OK to ACCEPTANCE_'
+type_text 'Join ACCEPTANCE and OK with _. No tools.'
+wait_for_text 'Join ACCEPTANCE and OK with _. No tools.'
 adb shell input keyevent KEYCODE_TAB
 adb shell input keyevent KEYCODE_ENTER
 

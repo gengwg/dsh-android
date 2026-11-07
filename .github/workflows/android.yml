@@ -6,6 +6,8 @@ on:  # yamllint disable-line rule:truthy
     branches: [main]
     tags: ['v*']
   pull_request:
+    paths-ignore:
+      - '.github/scripts/acceptance.sh'
   workflow_dispatch:
 
 permissions:
