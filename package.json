@@ -51,6 +51,7 @@
     "web": "expo start --web",
     "bundle:android": "expo export --platform android",
     "lint": "expo lint",
+    "notices": "node scripts/generate-third-party-notices.cjs",
     "test": "jest",
     "typecheck": "tsc --noEmit"
   },

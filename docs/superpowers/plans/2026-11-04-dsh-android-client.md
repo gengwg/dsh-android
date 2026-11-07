@@ -2,7 +2,7 @@
 
 Date: 2026-11-04
 Source session: `session-38e00841-0cba-4dab-b1d5-67a90cdb8f0d`
-Status: implemented; release/debug APKs and disposable Android transport checks complete, real-server workflow verification pending
+Status: implemented; release/debug APKs and real-server acceptance verified
 
 ## Goal and boundaries
 
