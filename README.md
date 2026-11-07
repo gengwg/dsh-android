@@ -4,7 +4,7 @@ Native Expo SDK 58 client for an existing DeepSeek Harness (DSH) server. The app
 
 ## Features
 
-- One-time launch-token bootstrap and encrypted cookie storage with Expo Secure Store.
+- One-time launch-token bootstrap with a show/hide entry control and encrypted cookie storage with Expo Secure Store.
 - Workspace selection, session lists, session creation, and saved preferences.
 - Conversation history, prompting, streaming, cancellation, and older-message paging.
 - Permission approvals and structured user questions, including continued questions after timeout/reconnect.
@@ -43,7 +43,7 @@ adb install -r android/app/build/outputs/apk/debug/app-debug.apk
 
 ## Verification
 
-The app passes 16 Jest suites with 80 tests, TypeScript, ESLint, clean dependency installation, official-client composition/disposal, and Android Hermes export. Both release and debug APKs build successfully.
+The app passes 17 Jest suites with 81 tests, TypeScript, ESLint, clean dependency installation, official-client composition/disposal, and Android Hermes export. Both release and debug APKs build successfully.
 
 On an Android 37 emulator, the release app starts successfully. A disposable local transport check also verified repeated `/connect` cookie capture, authenticated WebSocket headers, and credential restoration after a cold restart. No real credentials were used. These checks do not cover a real DSH server's workspace/chat workflows or release cleartext behavior.
 
@@ -68,6 +68,14 @@ The checked-in dependency graph uses an npm override to Zod `4.6.7`, which addre
 The signing key and passwords are supplied only through the `DSH_RELEASE_*` secrets/environment variables. They are never committed to the repository or printed by the build.
 
 After Android CI succeeds, `Real server acceptance` can be run manually with that run's ID to test its release APK without rebuilding it. The workflow uses `DSH_TEST_SERVER_URL` and `DSH_TEST_LAUNCH_TOKEN` from repository secrets to exercise connection, session creation, prompting, restart recovery, and sign-out on an Android emulator. Use only a dedicated test server and never paste those values into logs or pull requests.
+
+To retrieve the current dedicated test launch link locally, run this command yourself rather than storing its output in documentation or chat:
+
+```sh
+rg -o 'https://dsh-test\.getmuyu\.com/\?token=[A-Za-z0-9_-]+' /tmp/opencode/dsh-public-acceptance.log | tail -1
+```
+
+Use the URL's origin as the base URL and the value after `token=` as the launch token. Treat the complete launch link as a credential.
 
 ## Security and privacy
 
