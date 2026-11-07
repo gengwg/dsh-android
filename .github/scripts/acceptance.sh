@@ -41,11 +41,20 @@ sys.stdout.write(xml)
 '
 }
 
+function dump_crash_diagnostics {
+  adb logcat -d -s AndroidRuntime:E ReactNativeJS:E |
+    redact_ui |
+    grep -Ei 'AndroidRuntime:|ReactNativeJS:|FATAL|EXCEPTION|ERROR|Caused by|^[[:space:]]+at ' |
+    grep -Eiv 'cookie|authorization|token=|https?://' |
+    head -100 >&2 || true
+}
+
 function require_text {
   local expected="$1"
   if ! dump_ui | grep -Fq "$expected"; then
     printf 'Missing expected UI text: %s\n' "$expected" >&2
     dump_ui | redact_ui | head -80 >&2
+    dump_crash_diagnostics
     exit 1
   fi
 }
@@ -59,8 +68,11 @@ function wait_for_text {
       return 0
     fi
     if grep -Fq "Quickstep isn't responding" <<< "$ui"; then
-      tap_label "Wait"
+      tap_label "Close app"
       launch_app
+    fi
+    if grep -Fq "Choose input method" <<< "$ui"; then
+      tap_label "Android Keyboard (AOSP)"
     fi
     sleep 2
   done
@@ -83,7 +95,7 @@ xml = subprocess.check_output(
 pattern = re.compile(
     r'(?:text|content-desc)="'
     + re.escape(label)
-    + r'"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"'
+    + r'"[^>]*enabled="true"[^>]*bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"'
 )
 matches = list(pattern.finditer(xml))
 if not matches:
@@ -96,10 +108,29 @@ PY
       adb shell input tap "$coordinates"
       return 0
     fi
+    if [[ "$label" != "Wait" ]] && dump_ui | grep -Fq "Quickstep isn't responding"; then
+      tap_label "Close app"
+      launch_app
+    fi
+    if dump_ui | grep -Fq "Choose input method"; then
+      tap_label "Android Keyboard (AOSP)"
+    fi
     sleep 2
   done
   printf 'Could not find UI label: %s\n' "$label" >&2
+  dump_ui | redact_ui | head -80 >&2
+  dump_crash_diagnostics
   return 1
+}
+
+function type_text {
+  local value="$1"
+  local escaped index
+  for ((index = 0; index < ${#value}; index++)); do
+    printf -v escaped '%q' "${value:index:1}"
+    adb shell input text "$escaped"
+    sleep 0.03
+  done
 }
 
 function launch_app {
@@ -111,47 +142,41 @@ adb wait-for-device
 adb shell 'while [ "$(getprop sys.boot_completed)" != "1" ]; do sleep 2; done'
 adb install -r android/app/build/outputs/apk/release/app-release.apk
 adb shell pm clear com.anonymous.dshandroid
+adb logcat -c
 launch_app
 
 wait_for_text "Connect to DSH"
 tap_label "DSH server URL"
-adb shell input text "$DSH_TEST_SERVER_URL"
-adb shell input keyevent KEYCODE_BACK
+type_text "$DSH_TEST_SERVER_URL"
 tap_label "DSH launch token"
-adb shell input text "$DSH_TEST_LAUNCH_TOKEN"
-adb shell input keyevent KEYCODE_BACK
+type_text "$DSH_TEST_LAUNCH_TOKEN"
 if [[ "$DSH_TEST_SERVER_URL" == http://* ]]; then
   tap_label "Allow HTTP for development"
 fi
 tap_label "CONNECT"
 wait_for_text "DSH Sessions"
 
-if dump_ui | grep -Fq "Initialize default workspace"; then
-  tap_label "Initialize default workspace"
-  sleep 2
+if dump_ui | grep -Fq "INITIALIZE DEFAULT WORKSPACE"; then
+  tap_label "INITIALIZE DEFAULT WORKSPACE"
+  wait_for_text "NEW SESSION"
 fi
 
-tap_label "New session"
+tap_label "NEW SESSION"
 wait_for_text "Message DSH"
 tap_label "Message DSH"
-adb shell input text 'Join ACCEPTANCE and OK with an underscore. Reply with that value only.'
-adb shell input keyevent KEYCODE_BACK
-tap_label "Send"
+type_text 'Compute 7319 + 42. Digits only.'
+wait_for_text 'Compute 7319 + 42. Digits only.'
+adb shell input keyevent KEYCODE_TAB
+adb shell input keyevent KEYCODE_ENTER
 
-for _ in {1..30}; do
-  if dump_ui | grep -Fq "ACCEPTANCE_OK"; then
-    break
-  fi
-  sleep 2
-done
-require_text "ACCEPTANCE_OK"
+wait_for_text "7361"
 
 adb shell am force-stop com.anonymous.dshandroid
 launch_app
 wait_for_text "DSH Sessions"
 
 tap_label "Settings"
-tap_label "Sign out"
-tap_label "Sign out"
+tap_label "SIGN OUT"
+tap_label "SIGN OUT"
 wait_for_text "Connect to DSH"
 printf 'Real-server acceptance passed\n'
