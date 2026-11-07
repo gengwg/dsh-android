@@ -105,6 +105,10 @@ PY
       adb shell input tap "$coordinates"
       return 0
     fi
+    if [[ "$label" != "Wait" ]] && dump_ui | grep -Fq "Quickstep isn't responding"; then
+      tap_label "Wait"
+      launch_app
+    fi
     sleep 2
   done
   printf 'Could not find UI label: %s\n' "$label" >&2
