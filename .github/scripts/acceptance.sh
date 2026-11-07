@@ -117,16 +117,14 @@ PY
   return 1
 }
 
-function hide_keyboard {
-  if adb shell dumpsys input_method | grep -Fq 'mInputShown=true'; then
-    adb shell input keyevent KEYCODE_BACK
-  fi
-}
-
 function type_text {
-  local escaped
-  printf -v escaped '%q' "$1"
-  adb shell input text "$escaped"
+  local value="$1"
+  local escaped index
+  for ((index = 0; index < ${#value}; index++)); do
+    printf -v escaped '%q' "${value:index:1}"
+    adb shell input text "$escaped"
+    sleep 0.03
+  done
 }
 
 function launch_app {
@@ -144,10 +142,8 @@ launch_app
 wait_for_text "Connect to DSH"
 tap_label "DSH server URL"
 type_text "$DSH_TEST_SERVER_URL"
-hide_keyboard
 tap_label "DSH launch token"
 type_text "$DSH_TEST_LAUNCH_TOKEN"
-hide_keyboard
 if [[ "$DSH_TEST_SERVER_URL" == http://* ]]; then
   tap_label "Allow HTTP for development"
 fi
@@ -164,7 +160,6 @@ wait_for_text "Message DSH"
 tap_label "Message DSH"
 type_text 'Append OK to ACCEPTANCE_'
 wait_for_text 'Append OK to ACCEPTANCE_'
-hide_keyboard
 tap_label "SEND"
 
 for _ in {1..30}; do
