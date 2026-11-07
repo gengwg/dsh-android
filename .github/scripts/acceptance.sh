@@ -126,12 +126,12 @@ fi
 tap_label "CONNECT"
 wait_for_text "DSH Sessions"
 
-if dump_ui | grep -Fq "Initialize default workspace"; then
-  tap_label "Initialize default workspace"
-  sleep 2
+if dump_ui | grep -Fq "INITIALIZE DEFAULT WORKSPACE"; then
+  tap_label "INITIALIZE DEFAULT WORKSPACE"
+  wait_for_text "NEW SESSION"
 fi
 
-tap_label "New session"
+tap_label "NEW SESSION"
 wait_for_text "Message DSH"
 tap_label "Message DSH"
 adb shell input text 'Join ACCEPTANCE and OK with an underscore. Reply with that value only.'
