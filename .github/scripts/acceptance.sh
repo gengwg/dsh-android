@@ -166,7 +166,8 @@ wait_for_text "Message DSH"
 tap_label "Message DSH"
 type_text 'Append OK to ACCEPTANCE_'
 wait_for_text 'Append OK to ACCEPTANCE_'
-tap_label "SEND"
+adb shell input keyevent KEYCODE_TAB
+adb shell input keyevent KEYCODE_ENTER
 
 wait_for_text "ACCEPTANCE_OK"
 
