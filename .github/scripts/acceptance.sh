@@ -71,6 +71,9 @@ function wait_for_text {
       tap_label "Wait"
       launch_app
     fi
+    if grep -Fq "Choose input method" <<< "$ui"; then
+      adb shell input keyevent KEYCODE_BACK
+    fi
     sleep 2
   done
   require_text "$expected"
@@ -108,6 +111,9 @@ PY
     if [[ "$label" != "Wait" ]] && dump_ui | grep -Fq "Quickstep isn't responding"; then
       tap_label "Wait"
       launch_app
+    fi
+    if dump_ui | grep -Fq "Choose input method"; then
+      adb shell input keyevent KEYCODE_BACK
     fi
     sleep 2
   done
