@@ -2,7 +2,7 @@
   "expo": {
     "name": "dsh-android",
     "slug": "dsh-android",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "scheme": "dsh-android",
     "icon": "./assets/icon.png",
@@ -18,7 +18,8 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.dshandroid"
+      "package": "com.anonymous.dshandroid",
+      "versionCode": 2
     },
     "web": {
       "favicon": "./assets/favicon.png"
