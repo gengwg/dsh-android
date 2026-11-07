@@ -164,12 +164,12 @@ fi
 tap_label "NEW SESSION"
 wait_for_text "Message DSH"
 tap_label "Message DSH"
-type_text 'Join ACCEPTANCE and OK with _. No tools.'
-wait_for_text 'Join ACCEPTANCE and OK with _. No tools.'
+type_text 'Compute 7319 + 42. Digits only.'
+wait_for_text 'Compute 7319 + 42. Digits only.'
 adb shell input keyevent KEYCODE_TAB
 adb shell input keyevent KEYCODE_ENTER
 
-wait_for_text "ACCEPTANCE_OK"
+wait_for_text "7361"
 
 adb shell am force-stop com.anonymous.dshandroid
 launch_app
